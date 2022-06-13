@@ -12,6 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * UserService implementation.
+ * @author Ivan Djoh
+ * @version 1.0.0
+ * @since june 13, 2022
+ */
+
 @Service @RequiredArgsConstructor @Transactional @Slf4j
 public class UserServiceImpl implements UserService {
 
