@@ -7,9 +7,15 @@ import ivandjoh.jwt.repository.AppUserRepository;
 import ivandjoh.jwt.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -20,11 +26,24 @@ import java.util.List;
  */
 
 @Service @RequiredArgsConstructor @Transactional @Slf4j
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final AppRoleRepository appRoleRepository;
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        AppUser appUser = appUserRepository.findByUsername(username);
+        if (appUser == null) {
+            log.error("User not found: {}", username);
+            throw new UsernameNotFoundException("User not found in the Database");
+        } else {
+            log.info("User found: {}", username);
+        }
+        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        appUser.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+        return new org.springframework.security.core.userdetails.User(appUser.getUsername(), appUser.getPassword(), authorities);
+    }
 
     @Override
     public AppUser saveUser(AppUser user) {
@@ -57,4 +76,5 @@ public class UserServiceImpl implements UserService {
         log.info("Fetching all users from Database!");
         return appUserRepository.findAll();
     }
+
 }
