@@ -1,6 +1,7 @@
 package ivandjoh.jwt.config;
 
 import ivandjoh.jwt.filter.CustomAuthenticationFilter;
+import ivandjoh.jwt.filter.CustomAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -41,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // You can use the following code to Override the default security configuration: /login
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-        customAuthenticationFilter.setFilterProcessesUrl("api/v1/login");
+        customAuthenticationFilter.setFilterProcessesUrl("/api/v1/login");
 
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -53,10 +55,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          */
 
         http.authorizeRequests().antMatchers(GET, "/api/v1/login/**").permitAll();
-        http.authorizeRequests().antMatchers(GET, "/api/v1/users").hasAuthority("ROLE_USER");
-        http.authorizeRequests().antMatchers(POST, "/api/v1/user/create").hasAuthority("ROLE_ADMIN");
+        http.authorizeRequests().antMatchers(GET, "/api/v1/users/**").hasAuthority("ROLE_SUPER_ADMIN");
+        http.authorizeRequests().antMatchers(POST, "/api/v1/user/create/**").hasAuthority("ROLE_ADMIN");
         http.authorizeRequests().anyRequest().authenticated();
         http.addFilter(customAuthenticationFilter);
+        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
