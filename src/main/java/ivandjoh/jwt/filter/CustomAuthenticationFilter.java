@@ -2,6 +2,7 @@ package ivandjoh.jwt.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +17,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -58,7 +63,20 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
 
-        response.addHeader("Access-Token", access_token);
-        response.addHeader("Refresh-Token", refresh_token);
+        /**
+         * You can send this token to the client through the response header by activate these code lines below
+         *
+         * response.addHeader("Access-Token", access_token);
+         * response.addHeader("Refresh-Token", refresh_token);
+         *
+         */
+
+        // Or send the token to the client through response Body
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("access-token", access_token);
+        tokens.put("refresh-token", refresh_token);
+
+        response.setContentType(APPLICATION_JSON_VALUE);
+        new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
 }
