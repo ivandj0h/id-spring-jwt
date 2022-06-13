@@ -23,6 +23,13 @@ import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+/**
+ * Custom Authentication Filter
+ * @author Ivan Djoh
+ * @version 1.0.0
+ * @since june 13, 2022
+ */
+
 @Slf4j
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
