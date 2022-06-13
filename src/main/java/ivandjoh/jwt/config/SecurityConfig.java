@@ -11,8 +11,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 
 /**
  * SecurityConfig.
@@ -36,10 +38,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        // You can use the following code to Override the default security configuration: /login
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        customAuthenticationFilter.setFilterProcessesUrl("api/v1/login");
+
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().anyRequest().permitAll();
-        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
+
+        /**
+         *
+         * if you want to allow certain endpoints to be accessible without authentication, you can go with this line below
+         * http.authorizeRequests().antMatchers(GET, "/api/v1/<whatever>").permitAll();
+         */
+
+        http.authorizeRequests().antMatchers(GET, "/api/v1/login/**").permitAll();
+        http.authorizeRequests().antMatchers(GET, "/api/v1/users").hasAuthority("ROLE_USER");
+        http.authorizeRequests().antMatchers(POST, "/api/v1/user/create").hasAuthority("ROLE_ADMIN");
+        http.authorizeRequests().anyRequest().authenticated();
+        http.addFilter(customAuthenticationFilter);
     }
 
     @Bean
